@@ -55,8 +55,8 @@ namespace pressio{ namespace ops{
 
 template <typename T, typename T1, typename T2>
 ::pressio::mpl::enable_if_t<
-  mpl::variadic::all_of<_pybind_is_pybind, T, T1, T2>::value and
-  mpl::variadic::any_of<_pybind_is_rank1, T, T1, T2>::value
+  mpl::all_of<_pybind_is_pybind, T, T1, T2>::value and
+  mpl::any_of<_pybind_is_rank1, T, T1, T2>::value
   >
 elementwise_multiply
 (typename ::pressio::Traits<T>::scalar_type alpha,
@@ -68,15 +68,15 @@ elementwise_multiply
 
   assert(extent(x, 0)==extent(z, 0));
   assert(extent(z, 0)==extent(y, 0));
-  for (std::size_t i=0; i<y.extent(0); ++i){
+  for (std::size_t i=0; i<extent(y, 0); ++i){
     y(i) = beta*y(i) + alpha*x(i)*z(i);
   }
 }
 
 template <typename T, typename T1, typename T2>
 ::pressio::mpl::enable_if_t<
-  mpl::variadic::all_of<_pybind_is_pybind, T, T1, T2>::value and
-  mpl::variadic::all_of<_pybind_is_rank_dyn, T, T1, T2>::value
+  mpl::all_of<_pybind_is_pybind, T, T1, T2>::value and
+  mpl::all_of<_pybind_is_rank_dyn, T, T1, T2>::value
   >
 elementwise_multiply
 (typename ::pressio::Traits<T>::scalar_type alpha,
@@ -91,7 +91,7 @@ elementwise_multiply
   assert(x.ndim() == y.ndim());
 
   if(x.ndim()==1){
-    for (std::size_t i=0; i<y.extent(0); ++i){
+    for (std::size_t i=0; i<extent(y,0); ++i){
       y(i) = beta*y(i) + alpha*x(i)*z(i);
     }
   }

@@ -58,6 +58,45 @@ namespace pressio{ namespace rom{ namespace lspg{
 // DEFAULT
 // --------------------
 
+// steady
+template<
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class ReturnType = typename impl::ComposeDefaultProblemSteady<
+    FomSystemType, DecoderType, RomStateType, FomReferenceStateType
+    >::type
+  >
+ReturnType create_default_steady_problem(const FomSystemType & fomSysObj,
+					 DecoderType & decoder,
+					 const RomStateType & stateIn,
+					 const FomReferenceStateType & fomRef)
+{
+  return ReturnType(fomSysObj, decoder, stateIn, fomRef);
+}
+
+// steady, with preconditioner
+template<
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class PreconditionerType,
+  class ReturnType = typename impl::ComposePrecDefaultProblemSteady<
+  FomSystemType, DecoderType, RomStateType, FomReferenceStateType, PreconditionerType
+  >::type
+
+>
+ReturnType create_default_steady_problem(const FomSystemType & fomSysObj,
+				  DecoderType & decoder,
+				  const RomStateType & stateIn,
+				  const FomReferenceStateType & fomRef,
+				  const PreconditionerType & prec)
+{
+  return ReturnType(fomSysObj, decoder, stateIn, fomRef, prec);
+}
+
 // unsteady, cont-time
 template<
   class FomSystemType,
@@ -74,6 +113,7 @@ ReturnType create_default_unsteady_problem(::pressio::ode::StepScheme name,
 					   const RomStateType & stateIn,
 					   const FomReferenceStateType & fomRef)
 {
+
   return ReturnType(name, fomSysObj, decoder, stateIn, fomRef);
 }
 
@@ -88,6 +128,7 @@ template<
     FomSystemType, DecoderType, RomStateType,
     FomReferenceStateType, PreconditionerType
     >::type
+
   >
 ReturnType create_default_unsteady_problem(::pressio::ode::StepScheme name,
 					   const FomSystemType & fomSysObj,
@@ -128,8 +169,8 @@ template<
   class FomReferenceStateType,
   class PreconditionerType,
   class ReturnType = typename impl::ComposePrecDefaultProblemDiscTime<
-    num_states, FomSystemType, DecoderType, RomStateType, FomReferenceStateType, PreconditionerType
-    >::type
+    num_states, FomSystemType, DecoderType, RomStateType,
+    FomReferenceStateType, PreconditionerType>::type
   >
 ReturnType create_default_unsteady_problem(const FomSystemType & fomSysObj,
 					   DecoderType & decoder,
@@ -137,9 +178,14 @@ ReturnType create_default_unsteady_problem(const FomSystemType & fomSysObj,
 					   const FomReferenceStateType & fomRef,
 					   const PreconditionerType & prec)
 {
+
   return ReturnType(::pressio::ode::StepScheme::ImplicitArbitrary,
 		    fomSysObj, decoder, stateIn, fomRef, prec);
 }
+
+// --------------------
+// MASKED
+// --------------------
 
 // steady
 template<
@@ -147,16 +193,19 @@ template<
   class DecoderType,
   class RomStateType,
   class FomReferenceStateType,
-  class ReturnType = typename impl::ComposeDefaultProblemSteady<
-    FomSystemType, DecoderType, RomStateType, FomReferenceStateType
+  class MaskerType,
+  class ReturnType = typename impl::ComposeMaskedProblemSteady<
+    FomSystemType, DecoderType, RomStateType, FomReferenceStateType, MaskerType
     >::type
   >
-ReturnType create_default_steady_problem(const FomSystemType & fomSysObj,
-					 DecoderType & decoder,
-					 const RomStateType & stateIn,
-					 const FomReferenceStateType & fomRef)
+ReturnType create_masked_steady_problem(const FomSystemType & fomSysObj,
+					DecoderType & decoder,
+					const RomStateType & stateIn,
+					const FomReferenceStateType & fomRef,
+					const MaskerType & masker)
 {
-  return ReturnType(fomSysObj, decoder, stateIn, fomRef);
+
+  return ReturnType(fomSysObj, decoder, stateIn, fomRef, masker);
 }
 
 // steady, with preconditioner
@@ -165,23 +214,21 @@ template<
   class DecoderType,
   class RomStateType,
   class FomReferenceStateType,
+  class MaskerType,
   class PreconditionerType,
-  class ReturnType = typename impl::ComposePrecDefaultProblemSteady<
-    FomSystemType, DecoderType, RomStateType, FomReferenceStateType, PreconditionerType
-    >::type
+  class ReturnType = typename impl::ComposePrecMaskedProblemSteady<
+    FomSystemType, DecoderType, RomStateType, FomReferenceStateType,
+    MaskerType, PreconditionerType>::type
   >
-ReturnType create_default_steady_problem(const FomSystemType & fomSysObj,
-					 DecoderType & decoder,
-					 const RomStateType & stateIn,
-					 const FomReferenceStateType & fomRef,
-					 const PreconditionerType & prec)
+ReturnType create_masked_steady_problem(const FomSystemType & fomSysObj,
+					DecoderType & decoder,
+					const RomStateType & stateIn,
+					const FomReferenceStateType & fomRef,
+					const MaskerType & masker,
+					const PreconditionerType & prec)
 {
-  return ReturnType(fomSysObj, decoder, stateIn, fomRef, prec);
+  return ReturnType(fomSysObj, decoder, stateIn, fomRef, prec, masker);
 }
-
-// --------------------
-// MASKED
-// --------------------
 
 // unsteady, cont-time
 template<
@@ -237,8 +284,8 @@ template<
   class FomReferenceStateType,
   class MaskerType,
   class ReturnType = typename impl::ComposeMaskedProblemDiscTime<
-    num_states, FomSystemType, DecoderType, RomStateType, FomReferenceStateType, MaskerType
-    >::type
+    num_states, FomSystemType, DecoderType, RomStateType,
+    FomReferenceStateType, MaskerType>::type
   >
 ReturnType create_masked_unsteady_problem(const FomSystemType & fomSysObj,
 					  DecoderType & decoder,
@@ -261,8 +308,7 @@ template<
   class PreconditionerType,
   class ReturnType = typename impl::ComposePrecMaskedProblemDiscTime<
     num_states, FomSystemType, DecoderType, RomStateType, FomReferenceStateType,
-    MaskerType, PreconditionerType
-    >::type
+    MaskerType, PreconditionerType>::type
   >
 ReturnType create_masked_unsteady_problem(const FomSystemType & fomSysObj,
 					  DecoderType & decoder,
@@ -275,119 +321,9 @@ ReturnType create_masked_unsteady_problem(const FomSystemType & fomSysObj,
 		    fomSysObj, decoder, stateIn, fomRef, prec, masker);
 }
 
-// steady
-template<
-  class FomSystemType,
-  class DecoderType,
-  class RomStateType,
-  class FomReferenceStateType,
-  class MaskerType,
-  class ReturnType = typename impl::ComposeMaskedProblemSteady<
-    FomSystemType, DecoderType, RomStateType, FomReferenceStateType, MaskerType
-    >::type
-  >
-ReturnType create_masked_steady_problem(const FomSystemType & fomSysObj,
-					DecoderType & decoder,
-					const RomStateType & stateIn,
-					const FomReferenceStateType & fomRef,
-					const MaskerType & masker)
-{
-  return ReturnType(fomSysObj, decoder, stateIn, fomRef, masker);
-}
-
-// steady, with preconditioner
-template<
-  class FomSystemType,
-  class DecoderType,
-  class RomStateType,
-  class FomReferenceStateType,
-  class MaskerType,
-  class PreconditionerType,
-  class ReturnType = typename impl::ComposePrecMaskedProblemSteady<
-    FomSystemType, DecoderType, RomStateType, FomReferenceStateType,
-    MaskerType, PreconditionerType
-    >::type
-  >
-ReturnType create_masked_steady_problem(const FomSystemType & fomSysObj,
-					DecoderType & decoder,
-					const RomStateType & stateIn,
-					const FomReferenceStateType & fomRef,
-					const MaskerType & masker,
-					const PreconditionerType & prec)
-{
-  return ReturnType(fomSysObj, decoder, stateIn, fomRef, prec, masker);
-}
-
 // --------------------
 // HYPRED
 // --------------------
-
-// unsteady, cont-time
-template<
-  class FomSystemType,
-  class DecoderType,
-  class RomStateType,
-  class FomReferenceStateType,
-  class HypRedOperatorUpdaterType,
-  class ReturnType = typename impl::ComposeHypRedProblemContTime<
-    FomSystemType, DecoderType, RomStateType, FomReferenceStateType, HypRedOperatorUpdaterType
-    >::type
-  >
-ReturnType create_hyperreduced_unsteady_problem(::pressio::ode::StepScheme name,
-						const FomSystemType & fomSysObj,
-						DecoderType & decoder,
-						const RomStateType & stateIn,
-						const FomReferenceStateType & fomRef,
-						const HypRedOperatorUpdaterType & combiner)
-{
-  return ReturnType(name, fomSysObj, decoder, stateIn, fomRef, combiner);
-}
-
-#ifdef PRESSIO_ENABLE_TPL_TRILINOS
-// unsteady, cont-time
-// this overload is specific to trilinos for now, where we can use the underlying
-// maps of the operators to figure out how to combine them.
-// if you call this for non-trilinos data types, you get an error
-template<
-  class FomSystemType,
-  class DecoderType,
-  class RomStateType,
-  class FomReferenceStateType,
-  class HypRedOperatorUpdaterType = impl::HypRedUpdaterTrilinos,
-  class ReturnType = typename impl::ComposeHypRedProblemContTime<
-    FomSystemType, DecoderType, RomStateType, FomReferenceStateType, HypRedOperatorUpdaterType
-    >::type
-  >
-ReturnType create_hyperreduced_unsteady_problem(::pressio::ode::StepScheme name,
-						const FomSystemType & fomSysObj,
-						DecoderType & decoder,
-						const RomStateType & stateIn,
-						const FomReferenceStateType & fomRef)
-{
-  return ReturnType(name, fomSysObj, decoder, stateIn, fomRef,
-		    HypRedOperatorUpdaterType());
-}
-#endif
-
-// unsteady, discrete-time
-template<
-  std::size_t num_states,
-  class FomSystemType,
-  class DecoderType,
-  class RomStateType,
-  class FomReferenceStateType,
-  class ReturnType = typename impl::ComposeHypRedProblemDiscTime<
-    num_states, FomSystemType, DecoderType, RomStateType, FomReferenceStateType
-    >::type
-  >
-ReturnType create_hyperreduced_unsteady_problem(const FomSystemType & fomSysObj,
-						DecoderType & decoder,
-						const RomStateType & stateIn,
-						const FomReferenceStateType & fomRef)
-{
-  return ReturnType(::pressio::ode::StepScheme::ImplicitArbitrary,
-		    fomSysObj, decoder, stateIn, fomRef);
-}
 
 // steady
 template<
@@ -425,6 +361,172 @@ ReturnType create_hyperreduced_steady_problem(const FomSystemType & fomSysObj,
 					      const PreconditionerType & prec)
 {
   return ReturnType(fomSysObj, decoder, stateIn, fomRef, prec);
+}
+
+// unsteady, cont-time
+template<
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class HypRedOperatorUpdaterType,
+  class ReturnType = typename impl::ComposeHypRedProblemContTime<
+    FomSystemType, DecoderType, RomStateType,
+    FomReferenceStateType, HypRedOperatorUpdaterType>::type
+  >
+ReturnType create_hyperreduced_unsteady_problem(::pressio::ode::StepScheme name,
+						const FomSystemType & fomSysObj,
+						DecoderType & decoder,
+						const RomStateType & stateIn,
+						const FomReferenceStateType & fomRef,
+						const HypRedOperatorUpdaterType & operatorUpdater)
+{
+  return ReturnType(name, fomSysObj, decoder, stateIn, fomRef, operatorUpdater);
+}
+
+#ifdef PRESSIO_ENABLE_TPL_TRILINOS
+// unsteady, cont-time
+// this overload is specific to trilinos for now, where we can use the underlying
+// maps of the operators to figure out how to combine them.
+// if you call this for non-trilinos data types, you get an error
+template<
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType
+  >
+auto create_hyperreduced_unsteady_problem(::pressio::ode::StepScheme name,
+					  const FomSystemType & fomSysObj,
+					  DecoderType & decoder,
+					  const RomStateType & stateIn,
+					  const FomReferenceStateType & fomRef)
+{
+
+  // this is the cont-time, we can query the adapter's types and
+  // error out if they are not trilinos types
+  using fom_state_type = typename mpl::remove_cvref_t<FomSystemType>::state_type;
+  using fom_velo_type = typename mpl::remove_cvref_t<FomSystemType>::velocity_type;
+  static_assert
+    (pressio::Traits<fom_state_type>::package_identifier ==
+     pressio::PackageIdentifier::Trilinos and
+     pressio::Traits<fom_velo_type>::package_identifier ==
+     pressio::PackageIdentifier::Trilinos,
+     "You are calling an overload of create_hyperreduced_unsteaady_problem that \
+is only valid for Trilinos type");
+
+  using hr_operator_updater_t = impl::HypRedUpdaterTrilinos;
+  using ReturnType = typename impl::ComposeHypRedProblemContTime<
+    FomSystemType, DecoderType, RomStateType,
+    FomReferenceStateType, hr_operator_updater_t>::type;
+
+  return ReturnType(name, fomSysObj, decoder, stateIn,
+		    fomRef, hr_operator_updater_t());
+}
+
+// unsteady, cont-time
+// this overload is specific to trilinos for now, where we can use the underlying
+// maps of the operators to figure out how to combine them.
+// if you call this for non-trilinos data types, you get an error
+template<
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class PreconditionerType
+  >
+auto create_prec_hyperreduced_unsteady_problem(::pressio::ode::StepScheme name,
+					       const FomSystemType & fomSysObj,
+					       DecoderType & decoder,
+					       const RomStateType & stateIn,
+					       const FomReferenceStateType & fomRef,
+					       const PreconditionerType & prec)
+{
+
+  // this is the cont-time, we can query the adapter's types and
+  // error out if they are not trilinos types
+  using fom_state_type = typename mpl::remove_cvref_t<FomSystemType>::state_type;
+  using fom_velo_type = typename mpl::remove_cvref_t<FomSystemType>::velocity_type;
+  static_assert
+    (pressio::Traits<fom_state_type>::package_identifier ==
+     pressio::PackageIdentifier::Trilinos and
+     pressio::Traits<fom_velo_type>::package_identifier ==
+     pressio::PackageIdentifier::Trilinos,
+     "You are calling an overload of create_hyperreduced_unsteaady_problem that \
+is only valid for Trilinos type");
+
+  using hr_operator_updater_t = impl::HypRedUpdaterTrilinos;
+  using ReturnType = typename impl::ComposePrecHypRedProblemContTime<
+    FomSystemType, DecoderType, RomStateType, FomReferenceStateType,
+    hr_operator_updater_t, PreconditionerType>::type;
+
+  return ReturnType(name, fomSysObj, decoder, stateIn, fomRef,
+		    hr_operator_updater_t(), prec);
+}
+#endif
+
+// unsteady, cont-time, with preconditioner
+template<
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class HypRedOperatorUpdaterType,
+  class PreconditionerType,
+  class ReturnType = typename impl::ComposePrecHypRedProblemContTime<
+    FomSystemType, DecoderType, RomStateType, FomReferenceStateType,
+    HypRedOperatorUpdaterType, PreconditionerType>::type
+  >
+ReturnType create_prec_hyperreduced_unsteady_problem(::pressio::ode::StepScheme name,
+						     const FomSystemType & fomSysObj,
+						     DecoderType & decoder,
+						     const RomStateType & stateIn,
+						     const FomReferenceStateType & fomRef,
+						     const HypRedOperatorUpdaterType & operatorUpdater,
+						     const PreconditionerType & prec)
+{
+  return ReturnType(name, fomSysObj, decoder, stateIn, fomRef, operatorUpdater, prec);
+}
+
+// unsteady, discrete-time
+template<
+  std::size_t num_states,
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class ReturnType = typename impl::ComposeHypRedProblemDiscTime<
+    num_states, FomSystemType, DecoderType, RomStateType, FomReferenceStateType
+    >::type
+  >
+ReturnType create_hyperreduced_unsteady_problem(const FomSystemType & fomSysObj,
+						DecoderType & decoder,
+						const RomStateType & stateIn,
+						const FomReferenceStateType & fomRef)
+{
+  return ReturnType(::pressio::ode::StepScheme::ImplicitArbitrary,
+		    fomSysObj, decoder, stateIn, fomRef);
+}
+
+// unsteady, discrete-time, with preconditioner
+template<
+  std::size_t num_states,
+  class FomSystemType,
+  class DecoderType,
+  class RomStateType,
+  class FomReferenceStateType,
+  class PreconditionerType,
+  class ReturnType = typename impl::ComposePrecHypRedProblemDiscTime<
+    num_states, FomSystemType, DecoderType, RomStateType,
+    FomReferenceStateType, PreconditionerType>::type
+  >
+ReturnType create_prec_hyperreduced_unsteady_problem(const FomSystemType & fomSysObj,
+						     DecoderType & decoder,
+						     const RomStateType & stateIn,
+						     const FomReferenceStateType & fomRef,
+						     const PreconditionerType & prec)
+{
+  return ReturnType(::pressio::ode::StepScheme::ImplicitArbitrary,
+		    fomSysObj, decoder, stateIn, fomRef, prec);
 }
 
 }}}//end namespace pressio::rom::lspg

@@ -100,8 +100,6 @@ struct CommonTraitsUnsteadyContTime
 
   using fom_states_manager_type = ::pressio::rom::ManagerStencilFomStatesDynamic<
     fom_state_type, fom_state_reconstr_type, ::pressio::ode::nPlusOne>;
-
-  static constexpr bool binding_sentinel = false;
 };
 
 
@@ -143,9 +141,8 @@ struct CommonTraitsUnsteadyDiscTime
   using fom_states_manager_type = ::pressio::rom::ManagerStencilFomStatesStatic<
     fom_state_type, fom_state_reconstr_type, num_states>;
 
-  static constexpr bool binding_sentinel = false;
-};
 
+};
 
 }}} // end namespace
 
@@ -165,7 +162,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyContTime<
     FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = true;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -215,7 +211,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyDiscTime<
     num_states, FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = false;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -262,7 +257,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyContTime<
     FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = true;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -321,7 +315,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyDiscTime<
     num_states, FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = false;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -375,7 +368,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyContTime<
     FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = true;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -434,7 +426,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyDiscTime<
     num_states, FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = false;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -488,7 +479,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyContTime<
     FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = true;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -556,7 +546,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyDiscTime<
     num_states, FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = false;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -614,7 +603,6 @@ struct Traits<
   using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyContTime<
     FomSystemType, LspgStateType, DecoderType>;
 
-  static constexpr auto binding_sentinel = common_types::binding_sentinel;
   static constexpr auto is_cont_time = true;
 
   using scalar_type       = typename common_types::scalar_type;
@@ -644,6 +632,71 @@ struct Traits<
     ::pressio::rom::lspg::impl::UnsteadyHypRedJacobianPolicy<
     lspg_jacobian_type, fom_states_manager_type, decoder_type,
     fom_system_type, hyperreduced_operator_type
+    >;
+
+  using stepper_type = typename ::pressio::ode::impl::ImplicitCompose<
+    lspg_state_type, residual_policy_type &, jacobian_policy_type &>::type;
+};
+
+
+//===============================
+// PRECONDITIONED HYPER-REDUCED
+//===============================
+
+// cont-time
+template <
+  class FomSystemType,
+  class LspgStateType,
+  class DecoderType,
+  class HypRedOperatorUpdater,
+  class PreconditionerType
+  >
+struct Traits<
+  ::pressio::rom::lspg::impl::UnsteadyProblem<
+    9, FomSystemType, LspgStateType, DecoderType, HypRedOperatorUpdater, PreconditionerType
+    >
+  >
+{
+
+  using common_types = ::pressio::rom::lspg::impl::CommonTraitsUnsteadyContTime<
+    FomSystemType, LspgStateType, DecoderType>;
+
+  static constexpr auto is_cont_time = true;
+
+  using scalar_type       = typename common_types::scalar_type;
+  using fom_system_type   = typename common_types::fom_system_type;
+  using fom_state_type    = typename common_types::fom_state_type;
+  using fom_velocity_type = typename common_types::fom_velocity_type;
+
+  using decoder_type		= typename common_types::decoder_type;
+  using decoder_jac_type	= typename common_types::decoder_jac_type;
+  using fom_state_reconstr_type = typename common_types::fom_state_reconstr_type;
+  using fom_states_manager_type = typename common_types::fom_states_manager_type;
+
+  using lspg_state_type	   = typename common_types::lspg_state_type;
+  using lspg_residual_type = typename common_types::lspg_residual_type;
+  using lspg_jacobian_type = typename common_types::lspg_jacobian_type;
+  using size_type = typename ::pressio::Traits<lspg_state_type>::size_type;
+
+  using hyperreduced_operator_type = HypRedOperatorUpdater;
+  using preconditioner_type = PreconditionerType;
+
+  using residual_policy_type =
+    ::pressio::rom::lspg::impl::PrecDecoratorResidual<
+    preconditioner_type,
+    ::pressio::rom::lspg::impl::UnsteadyHypRedResidualPolicy<
+      lspg_residual_type, fom_states_manager_type,
+      fom_system_type, hyperreduced_operator_type
+      >
+    >;
+
+  using jacobian_policy_type =
+    ::pressio::rom::lspg::impl::PrecDecoratorJacobian<
+    preconditioner_type,
+    ::pressio::rom::lspg::impl::UnsteadyHypRedJacobianPolicy<
+      lspg_jacobian_type, fom_states_manager_type, decoder_type,
+      fom_system_type, hyperreduced_operator_type
+      >
     >;
 
   using stepper_type = typename ::pressio::ode::impl::ImplicitCompose<

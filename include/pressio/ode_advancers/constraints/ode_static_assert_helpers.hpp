@@ -2,7 +2,7 @@
 //@HEADER
 // ************************************************************************
 //
-// rom_galerkin_types_selector.hpp
+// ode_advance_n_steps.hpp
 //                     		  Pressio
 //                             Copyright 2019
 //    National Technology & Engineering Solutions of Sandia, LLC (NTESS)
@@ -46,54 +46,43 @@
 //@HEADER
 */
 
-#ifndef ROM_IMPL_ROM_GALERKIN_TYPES_SELECTOR_HPP_
-#define ROM_IMPL_ROM_GALERKIN_TYPES_SELECTOR_HPP_
+#ifndef ODE_STATIC_ASSERT_HELPERS_HPP_
+#define ODE_STATIC_ASSERT_HELPERS_HPP_
 
-namespace pressio{ namespace rom{ namespace galerkin{ namespace impl{
+namespace pressio{ namespace ode{ namespace impl{
 
-template<typename T, class = void>
-struct select_galerkin_types
+template<class StepperType, class StateType, class TimeType, class ...Args>
+constexpr void
+static_assert_is_steppable_with(StepperType &  /*unused*/,
+				StateType &    /*unused*/,
+				const TimeType /*unused*/,
+				Args && ...    /*unused*/)
 {
-  using residual_type = void;
-  using jacobian_type = void;
-};
+  static_assert
+    (::pressio::ode::steppable_with<void, StepperType, StateType, TimeType, Args...>::value,
+     "The steppable object does not satisfy the steppable concept.");
+}
 
-#ifdef PRESSIO_ENABLE_TPL_EIGEN
-template<typename T>
-struct select_galerkin_types<
-  T,
-  mpl::enable_if_t<
-    ::pressio::is_dynamic_vector_eigen<T>::value
-    >
-  >
+template<class StepSizeSetterType, class TimeType>
+constexpr void
+static_assert_admissible_time_step_setter(StepSizeSetterType && /*unused*/,
+					  const TimeType        /*unused*/)
 {
-  // for now use residual_type = state_type
-  using residual_type = T;
+  static_assert
+    (::pressio::ode::time_step_size_manager<StepSizeSetterType, TimeType>::value,
+     "The step size setter does not satisfy the required concept.");
+}
 
-  // the galerkin jacobian is an eigen::matrix
-  // for now make it column-major (which is default)
-  using jacobian_type = Eigen::Matrix<
-    typename ::pressio::Traits<T>::scalar_type, -1,-1>;
-};
+template<class ObserverType, class StateType, class TimeType>
+constexpr void
+static_assert_admissible_observer(ObserverType && /*unused*/,
+				  StateType &     /*unused*/,
+				  const TimeType  /*unused*/)
+{
+  static_assert
+    (::pressio::ode::observer<ObserverType, TimeType, StateType>::value,
+     "The observer does not satisfy the required concept");
+}
+
+}}} //end namespace pressio::ode::impl
 #endif
-
-// #ifdef PRESSIO_ENABLE_TPL_PYBIND11
-// template<typename T>
-// struct select_galerkin_types<
-//   T,
-//   mpl::enable_if_t<
-//     ::pressio::containers::predicates::is_rank1_tensor_wrapper_pybind<T>::value
-//     >
-//   >
-// {
-//   using scalar_t = typename ::pressio::containers::details::traits<T>::scalar_t;
-//   // for now use residual_type = state_type
-//   using residual_type = T;
-//   // the galerkin jacobian is a pybind11 tensor column-major
-//   using native_j_t = pybind11::array_t<scalar_t, pybind11::array::f_style>;
-//   using jacobian_type = ::pressio::containers::Tensor<2, native_j_t>;
-// };
-// #endif
-
-}}}}
-#endif  // ROM_IMPL_ROM_GALERKIN_TYPES_SELECTOR_HPP_

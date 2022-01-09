@@ -2,7 +2,7 @@
 //@HEADER
 // ************************************************************************
 //
-// mpl_non_variadic.hpp
+// type_traits.hpp
 //                     		  Pressio
 //                             Copyright 2019
 //    National Technology & Engineering Solutions of Sandia, LLC (NTESS)
@@ -46,23 +46,67 @@
 //@HEADER
 */
 
-#ifndef MPL_MPL_NON_VARIADIC_HPP_
-#define MPL_MPL_NON_VARIADIC_HPP_
+/*
+  Verify values of common container traits
+*/
 
-#include "identity.hpp"
-#include "enable_if_t.hpp"
-#include "conditional_t.hpp"
-#include "is_default_constructible.hpp"
-#include "is_std_complex.hpp"
-#include "is_std_shared_ptr.hpp"
-#include "publicly_inherits_from.hpp"
-#include "void_t.hpp"
-#include "is_same.hpp"
-#include "not_same.hpp"
-#include "detection_idiom.hpp"
-#include "remove_cvref.hpp"
-#include "remove_reference.hpp"
-#include "not_void.hpp"
-#include "is_subscriptable_as.hpp"
+// -------------------------------------------------
 
-#endif  // MPL_MPL_NON_VARIADIC_HPP_
+/*
+    Verifies traits common for all containers
+*/
+template <
+  typename T,
+  pressio::PackageIdentifier pack_id,
+  int rank,
+  bool is_shared_mem,
+  bool is_dynamic,
+  typename Scalar,
+  typename Ordinal,
+  typename SizeType = Ordinal,
+  typename ScalarRef = typename std::add_lvalue_reference<
+    Scalar
+  >::type,
+  typename traits = pressio::Traits<T>
+>
+void test_container_traits()
+{
+  // ContainersSharedTraits
+  static_assert(traits::package_identifier == pack_id, "");
+  static_assert(traits::is_shared_mem == is_shared_mem, "");
+  static_assert(traits::is_distributed == !is_shared_mem, "");
+  static_assert(traits::rank == rank, "");
+  // AllocTrait
+  static_assert(traits::is_static == !is_dynamic, "");
+  static_assert(traits::is_dynamic == is_dynamic, "");
+  // ScalarTrait
+  testing::StaticAssertTypeEq<typename traits::scalar_type, Scalar>();
+  testing::StaticAssertTypeEq<typename traits::reference_type, Scalar &>();
+  testing::StaticAssertTypeEq<typename traits::const_reference_type, Scalar const &>();
+  // OrdinalTrait
+  testing::StaticAssertTypeEq<typename traits::ordinal_type, Ordinal>();
+  testing::StaticAssertTypeEq<typename traits::size_type, SizeType>();
+}
+
+// -------------------------------------------------
+
+/*
+    Verifies traits common for all matrices
+*/
+template <
+  typename T,
+  pressio::MatrixIdentifier mtx_id,
+  bool is_row_major = true,
+  bool is_sparse = false,
+  typename traits = pressio::Traits<T>
+>
+void test_matrix_traits()
+{
+  static_assert(traits::matrix_identifier == mtx_id, "");
+  static_assert(traits::is_sparse == is_sparse, "");
+  static_assert(traits::is_dense == !is_sparse, "");
+  static_assert(traits::is_row_major == is_row_major, "");
+  static_assert(traits::is_col_major == !is_row_major, "");
+}
+
+// -------------------------------------------------

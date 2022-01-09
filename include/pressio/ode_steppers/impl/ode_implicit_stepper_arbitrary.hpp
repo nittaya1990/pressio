@@ -68,8 +68,6 @@ public:
   using residual_type	= ResidualType;
   using jacobian_type	= JacobianType;
 
-  static constexpr bool is_implicit = true;
-  static constexpr bool is_explicit = false;
   // numAuxStates is the number of auxiliary states needed, so all other beside y_n
   static constexpr std::size_t numAuxStates = n_states - 1;
   using tag_name = ::pressio::ode::ImplicitArbitrary;
@@ -94,7 +92,7 @@ public:
   ~StepperArbitrary() = default;
 
   StepperArbitrary(const StateType & state,
-		               SystemType && systemObj)
+		   SystemType && systemObj)
     : systemObj_(std::forward<SystemType>(systemObj)),
       stencilStates_(state), //stencilstates handles right semantics
       recoveryState_{::pressio::ops::clone(state)}
